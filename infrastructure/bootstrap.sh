@@ -62,7 +62,7 @@ if ! aws iam get-open-id-connect-provider --open-id-connect-provider-arn "$PROVI
   aws iam create-open-id-connect-provider --url https://token.actions.githubusercontent.com --client-id-list sts.amazonaws.com >/dev/null
 fi
 cat > "$WORK_DIR/github-trust.json" <<JSON
-{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Federated":"$PROVIDER_ARN"},"Action":"sts:AssumeRoleWithWebIdentity","Condition":{"StringEquals":{"token.actions.githubusercontent.com:aud":"sts.amazonaws.com","token.actions.githubusercontent.com:sub":"repo:acesava/csci201-expense-tracker:ref:refs/heads/main"}}}]}
+{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Federated":"$PROVIDER_ARN"},"Action":"sts:AssumeRoleWithWebIdentity","Condition":{"StringEquals":{"token.actions.githubusercontent.com:aud":"sts.amazonaws.com","token.actions.githubusercontent.com:sub":"repo:acesava@287342120/csci201-expense-tracker@1405003751:ref:refs/heads/main"}}}]}
 JSON
 cat > "$WORK_DIR/deploy-policy.json" <<JSON
 {"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["lambda:UpdateFunctionCode","lambda:GetFunctionConfiguration","lambda:InvokeFunction"],"Resource":"$FUNCTION_ARN"}]}
@@ -70,6 +70,7 @@ JSON
 if ! aws iam get-role --role-name "$DEPLOY_ROLE" >/dev/null 2>&1; then
   aws iam create-role --role-name "$DEPLOY_ROLE" --assume-role-policy-document "file://$WORK_DIR/github-trust.json" >/dev/null
 fi
+aws iam update-assume-role-policy --role-name "$DEPLOY_ROLE" --policy-document "file://$WORK_DIR/github-trust.json"
 aws iam put-role-policy --role-name "$DEPLOY_ROLE" --policy-name DeployTeamFunction --policy-document "file://$WORK_DIR/deploy-policy.json"
 aws lambda get-function-url-config --function-name "$FUNCTION" --query FunctionUrl --output text
 echo "AWS_DEPLOY_ROLE_ARN=arn:aws:iam::$ACCOUNT_ID:role/$DEPLOY_ROLE"
