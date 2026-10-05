@@ -47,7 +47,7 @@ The live health check verifies browser -> Java connectivity only.
 `bootstrap.sh` creates:
 
 - A Java 21 ARM64 Lambda named `csci201-team3-api`, 256 MB memory and 10-second timeout.
-- A log group with 7-day retention and an execution role restricted to writing those logs.
+- A log group with 7-day retention and an execution role restricted to writing those logs and updating the IP counter table.
 - A public HTTP API Gateway with a default route to Lambda and shared throttling.
 - A gateway permission scoped to this API/account and IAM-only access on any legacy Function URL.
 - GitHub OIDC trust restricted to `acesava/CSCI201-Team3`, branch `main`.
@@ -146,6 +146,54 @@ An attacker can consume the shared allowance and gateway traffic can still consu
 API Gateway is a metered service; the AWS Free plan was retained without a paid upgrade.
 Authentication, group permissions, and per-user OCR quotas still need implementation before private or expensive features go live.
 See [HTTP API throttling](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-throttling.html) and [API Gateway pricing](https://aws.amazon.com/api-gateway/pricing/).
+
+## Per-IP burst protection
+
+Before deploying the Java guard, review and run in AWS CloudShell:
+
+```sh
+python3 infrastructure/configure-ip-limits.py
+python3 infrastructure/configure-ip-limits.py --apply
+```
+
+This creates `csci201-team3-ip-limits` in us-west-2 with 25 provisioned RCUs and WCUs, Standard storage, TTL cleanup, and no autoscaling.
+These capacities fit DynamoDB's published monthly free allowance when it is not consumed by other resources.
+The script refuses to proceed if another provisioned table already shares that capacity allowance in this region.
+This is not a guarantee that all AWS costs are zero; Lambda, gateway traffic, logs, and storage beyond allowances remain metered.
+No paid plan upgrade, on-demand capacity, backups, streams, or global replicas are enabled.
+
+The Lambda execution role gains only `dynamodb:UpdateItem` on this table, alongside its existing log permission.
+The script preserves other Lambda environment variables and sets `IP_RATE_LIMIT_TABLE`.
+Java fails closed with `503` if the table setting is missing or its counter cannot be checked.
+GitHub's deployment role and teammate access do not change.
+
+Each trusted API Gateway source IP gets 30 admissions per fixed 10-second window across all Lambda instances and paths.
+A conditional DynamoDB update atomically checks and increments the counter; it never reads a count and then writes it in separate requests.
+The key contains a SHA-256 IP hash and window number; hashes are pseudonymous, not anonymized.
+Raw IPs are not added to logs or stored in this table.
+Rows become eligible for TTL deletion two minutes after their window ends; AWS can take days to physically delete them.
+Window expiration depends on the key, not TTL deletion timing.
+
+The response is `429` with `Retry-After` until the next window, or `503` on counter failures/capacity exhaustion.
+This limit runs inside Lambda and therefore does not remove invocation costs.
+Shared campus IPs share the allowance; distributed or rotating-IP attacks can evade per-IP limits.
+Login, group permissions, and account-level OCR quotas are still the application team's work.
+Avoid changing the trusted source to `X-Forwarded-For` or other caller-controlled headers.
+The IAM-authorized deployment smoke test uses documentation-only IP `192.0.2.1`; public users cannot supply API Gateway's request context.
+
+For rollback, redeploy the previous Java artifact while preserving the existing gateway throttle.
+Do not remove the table or IAM policy while limiter code is running.
+See [DynamoDB pricing](https://aws.amazon.com/dynamodb/pricing/) for the shared free capacity allowance.
+
+The normal Maven suite checks routing, blocked requests, trusted source IP handling, and window resets without AWS credentials.
+To additionally test atomic updates under concurrency, start [DynamoDB Local](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html) and run:
+
+```sh
+DYNAMODB_LOCAL_ENDPOINT=http://127.0.0.1:18080 ./backend/mvnw -f backend/pom.xml verify
+```
+
+The integration test only accepts a localhost endpoint, uses dummy credentials, creates a disposable table, and removes it afterward.
+It verifies that exactly 30 of 60 concurrent attempts succeed against a shared counter.
 
 ## Supabase
 
