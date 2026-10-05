@@ -15,12 +15,12 @@ React sends requests to Java and displays the results Java sends back.
 
 ```mermaid
 flowchart TD
-    CF["Cloudflare Pages<br/>Hosts our website"] -->|Loads the website| FE["User's browser<br/>React screens, forms, and charts"]
+    CF["Cloudflare Pages<br/>Hosts our website"] -->|Loads the website| FE["User's browser<br/>React screens and forms"]
     FE -->|HTTPS request| API["AWS Lambda<br/>Our Java backend"]
     API -->|JSON response| FE
-    API -.->|Read and save data - planned| DB[("Supabase Postgres<br/>Accounts, groups, expenses, and shares")]
-    API -.->|Receipt reading - planned| OCR["Inside Lambda: Tesseract OCR<br/>Java worker threads handle receipt tasks"]
-    OCR -.->|Extracted items and prices| API
+    API -.->|Read / save data| DB[("Supabase Postgres<br/>Accounts and groups<br/>Expenses and shares")]
+    API -.->|Read receipt| OCR["Tesseract OCR<br/>Java worker threads<br/>Inside Lambda"]
+    OCR -.->|Items and prices| API
 ```
 
 **Working now:** the website and Java health check.
@@ -32,11 +32,11 @@ Users will also be able to enter expenses manually without uploading a receipt.
 
 ```mermaid
 flowchart TD
-    TEAM["Team member<br/>Code on a branch and open a pull request"] --> MAIN["Review and merge into main"]
-    MAIN --> CFBUILD["Cloudflare automatically builds React"]
+    TEAM["Team member<br/>Code on a branch<br/>Open a pull request"] --> MAIN["Review and merge<br/>into main"]
+    MAIN --> CFBUILD["Cloudflare<br/>Automatically builds React"]
     CFBUILD --> SITE["Updated live website"]
-    MAIN -->|Backend changes| ACTIONS["GitHub Actions tests and packages Java"]
-    ACTIONS --> LAMBDA["Updates our Lambda and checks its health"]
+    MAIN -->|Backend changes| ACTIONS["GitHub Actions<br/>Tests and packages Java"]
+    ACTIONS --> LAMBDA["Updates our Lambda<br/>Checks its health"]
 ```
 
 No manual deployment button is needed for normal frontend or backend changes merged into `main`.
