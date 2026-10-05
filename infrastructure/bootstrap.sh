@@ -62,7 +62,7 @@ if ! aws iam get-open-id-connect-provider --open-id-connect-provider-arn "$PROVI
   aws iam create-open-id-connect-provider --url https://token.actions.githubusercontent.com --client-id-list sts.amazonaws.com >/dev/null
 fi
 cat > "$WORK_DIR/github-trust.json" <<JSON
-{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Federated":"$PROVIDER_ARN"},"Action":"sts:AssumeRoleWithWebIdentity","Condition":{"StringEquals":{"token.actions.githubusercontent.com:aud":"sts.amazonaws.com","token.actions.githubusercontent.com:sub":"repo:acesava@287342120/csci201-expense-tracker@1405003751:ref:refs/heads/main"}}}]}
+{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Federated":"$PROVIDER_ARN"},"Action":"sts:AssumeRoleWithWebIdentity","Condition":{"StringEquals":{"token.actions.githubusercontent.com:aud":"sts.amazonaws.com","token.actions.githubusercontent.com:sub":"repo:acesava@287342120/CSCI201-Team3@1405003751:ref:refs/heads/main"}}}]}
 JSON
 cat > "$WORK_DIR/deploy-policy.json" <<JSON
 {"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["lambda:UpdateFunctionCode","lambda:GetFunctionConfiguration","lambda:InvokeFunction"],"Resource":"$FUNCTION_ARN"}]}

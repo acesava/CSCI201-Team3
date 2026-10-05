@@ -17,7 +17,7 @@ Login and expense features still need implementation.
 
 ## Verified accounts on October 4, 2026
 
-- GitHub: `acesava/csci201-expense-tracker`; Ace has write access.
+- GitHub: `acesava/CSCI201-Team3`; Ace has write access.
 - AWS: `CSCI201 Team 3`, account `398074591774`.
   The console displayed Free plan, $100 credit remaining, and April 4, 2027 expiration.
   This observation is not a guarantee of future eligibility or unlimited usage.
@@ -47,13 +47,13 @@ The live health check verifies browser -> Java connectivity only.
 - A Java 21 ARM64 Lambda named `csci201-team3-api`, 256 MB memory and 10-second timeout.
 - A log group with 7-day retention and an execution role restricted to writing those logs.
 - A public function URL for the starter's health endpoint.
-- GitHub OIDC trust restricted to `acesava/csci201-expense-tracker`, branch `main`.
+- GitHub OIDC trust restricted to `acesava/CSCI201-Team3`, branch `main`.
 - A deployment role allowed only to update this function's code, read its configuration, and invoke it for a health test.
 
 The deployment role cannot manage IAM, unrelated functions, or database credentials.
 Code deployed by that role executes with the function's runtime permissions and environment, so protect `main` and review changes before merging.
 No long-lived AWS access key is needed.
-This repository uses GitHub's immutable OIDC subject prefix, `repo:acesava@287342120/csci201-expense-tracker@1405003751`.
+This repository uses GitHub's immutable OIDC subject prefix, `repo:acesava@287342120/CSCI201-Team3@1405003751`.
 The trust policy includes this exact prefix plus `:ref:refs/heads/main`; copying a legacy name-only subject will fail.
 
 Review these permissions and public exposure before running bootstrap in CloudShell:
@@ -73,7 +73,7 @@ Lambda timeout and memory limits bound individual requests; they are not a month
 
 ## Cloudflare Pages: repository authorization
 
-Use the public `acesava/csci201-expense-tracker` repository.
+Use the public `acesava/CSCI201-Team3` repository.
 Authorize the Cloudflare Workers and Pages GitHub app for only this repository.
 Kyle's repository and the old Spring Boot starter remain unchanged.
 

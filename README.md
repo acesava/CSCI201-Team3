@@ -6,7 +6,7 @@ There is no Spring Boot dependency.
 
 - [Live starter](https://csci201-expense-tracker.pages.dev)
 - [Java health endpoint](https://sautin26evkxdm33hseqsah6te0kjgua.lambda-url.us-west-2.on.aws/health)
-- [Build and deployment runs](https://github.com/acesava/csci201-expense-tracker/actions)
+- [Build and deployment runs](https://github.com/acesava/CSCI201-Team3/actions)
 
 ## Start locally
 
