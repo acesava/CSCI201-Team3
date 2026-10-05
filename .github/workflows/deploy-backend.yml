@@ -34,7 +34,7 @@ jobs:
       - name: Update only the team function
         run: |
           aws lambda update-function-code --function-name csci201-team3-api --zip-file fileb://backend/target/expense-api.jar --query LastUpdateStatus --output text
-          aws lambda wait function-updated-v2 --function-name csci201-team3-api
+          aws lambda wait function-updated --function-name csci201-team3-api
       - name: Verify deployed handler
         run: |
           aws lambda invoke --function-name csci201-team3-api --cli-binary-format raw-in-base64-out --payload '{"rawPath":"/health","requestContext":{"http":{"method":"GET"}}}' /tmp/health.json > /tmp/invoke.json
