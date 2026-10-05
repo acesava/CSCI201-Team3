@@ -4,6 +4,19 @@ This setup is an owner-controlled safety switch for the team backend.
 It does not upgrade the AWS account or require access keys.
 It is infrastructure code; the application backend remains Java.
 
+## Activation verification, October 4, 2026
+
+- CloudFormation stack `csci201-team3-spending-guard` reached `CREATE_COMPLETE`.
+- AWS returned a $14 custom-period budget, $0 actual spend, and all three notification thresholds.
+- The $14 notification has both EMAIL and SNS subscribers.
+- All six CloudWatch alarm actions are enabled.
+- The email subscription was confirmed, and a labeled test alert arrived in the owner's inbox.
+- A real SNS trigger invoked the guard, which read the budget and logged `below_threshold` at $0 without changing the running backend.
+- IAM simulation allowed the scoped Lambda, route, and alert operations.
+- Nine local behavior tests and the GitHub infrastructure, frontend and backend checks passed.
+
+The actual production shutdown has not been exercised, since reported spend is below the threshold.
+
 ## Threshold and scope
 
 The cumulative account budget is $14 from October 1 through December 31, 2026 (UTC).
