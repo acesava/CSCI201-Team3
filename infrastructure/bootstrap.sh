@@ -42,20 +42,9 @@ if ! aws lambda get-function --function-name "$FUNCTION" >/dev/null 2>&1; then
   done
 fi
 aws lambda wait function-active-v2 --function-name "$FUNCTION"
-if ! aws lambda get-function-url-config --function-name "$FUNCTION" >/dev/null 2>&1; then
-  aws lambda create-function-url-config --function-name "$FUNCTION" --auth-type NONE >/dev/null
-fi
-# Both permissions are required for new function URLs. These expose only this starter API.
-for SID in TeamFunctionUrl TeamFunctionUrlInvoke; do
-  POLICY=$(aws lambda get-policy --function-name "$FUNCTION" --query Policy --output text 2>/dev/null || true)
-  if [[ "$POLICY" != *"\"$SID\""* ]]; then
-    if [[ "$SID" == TeamFunctionUrl ]]; then
-      aws lambda add-permission --function-name "$FUNCTION" --statement-id "$SID" --action lambda:InvokeFunctionUrl --principal '*' --function-url-auth-type NONE >/dev/null
-    else
-      aws lambda add-permission --function-name "$FUNCTION" --statement-id "$SID" --action lambda:InvokeFunction --principal '*' --invoked-via-function-url >/dev/null
-    fi
-  fi
-done
+# Public traffic enters API Gateway, which throttles before invoking Java.
+# This also removes anonymous access from any legacy direct function URL.
+python3 infrastructure/configure-gateway.py --close-direct-url
 
 PROVIDER_ARN="arn:aws:iam::$ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com"
 if ! aws iam get-open-id-connect-provider --open-id-connect-provider-arn "$PROVIDER_ARN" >/dev/null 2>&1; then
@@ -72,6 +61,5 @@ if ! aws iam get-role --role-name "$DEPLOY_ROLE" >/dev/null 2>&1; then
 fi
 aws iam update-assume-role-policy --role-name "$DEPLOY_ROLE" --policy-document "file://$WORK_DIR/github-trust.json"
 aws iam put-role-policy --role-name "$DEPLOY_ROLE" --policy-name DeployTeamFunction --policy-document "file://$WORK_DIR/deploy-policy.json"
-aws lambda get-function-url-config --function-name "$FUNCTION" --query FunctionUrl --output text
 echo "AWS_DEPLOY_ROLE_ARN=arn:aws:iam::$ACCOUNT_ID:role/$DEPLOY_ROLE"
-echo 'Configure exact frontend CORS origins after the Pages hostname is known.'
+echo 'Use the API Gateway URL above in the frontend and GitHub API_BASE_URL variable.'

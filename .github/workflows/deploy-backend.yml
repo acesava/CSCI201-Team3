@@ -48,7 +48,9 @@ jobs:
           print('Deployed Java health check passed')
           PY
       - name: Verify public URL and browser CORS
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
         run: >-
           python3 backend/scripts/check-live-api.py
-          https://sautin26evkxdm33hseqsah6te0kjgua.lambda-url.us-west-2.on.aws
+          "$API_BASE_URL"
           https://csci201-expense-tracker.pages.dev

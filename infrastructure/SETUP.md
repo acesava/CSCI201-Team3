@@ -4,7 +4,8 @@
 
 ```text
 Browser: React, served by Cloudflare Pages
-  -> HTTPS request to Java Lambda
+  -> HTTPS request to API Gateway (5 requests/sec, burst 10)
+     -> Java Lambda
      -> login / permissions / expense logic
      -> Supabase Postgres and optional private receipt storage
 
@@ -19,7 +20,7 @@ Login and expense features still need implementation.
 
 - GitHub: `acesava/CSCI201-Team3`; Ace has write access.
 - AWS: `CSCI201 Team 3`, account `398074591774`.
-  The console displayed Free plan, $100 credit remaining, and April 4, 2027 expiration.
+  The console displayed Free plan, $140 credit remaining, and April 4, 2027 expiration.
   This observation is not a guarantee of future eligibility or unlimited usage.
 - Supabase: free organization `CSCI201 Team 3`, project `csci201-team3` in Oregon (`us-west-2`).
 - Cloudflare: `acesavage344@gmail.com` account, with the existing QualCare worker left unchanged.
@@ -29,12 +30,13 @@ Use `us-west-2` for Lambda so the backend and database are in the same region.
 ## Provisioned starter
 
 - Frontend: https://csci201-expense-tracker.pages.dev
-- Java API: https://sautin26evkxdm33hseqsah6te0kjgua.lambda-url.us-west-2.on.aws
+- Java API: https://mu0qe823ue.execute-api.us-west-2.amazonaws.com
 - Supabase dashboard: https://supabase.com/dashboard/project/klxskdrnvslhqrwmuiuu
 - Cloudflare builds `main`, root `frontend`, command `npm run build`, output `dist`, Node.js 22.
 - `VITE_API_BASE_URL` is set in Cloudflare's build environment.
-- Lambda CORS permits the production Pages origin, `http://localhost:5173`, and `http://127.0.0.1:5178` for GET requests.
-- GitHub's `AWS_DEPLOY_ROLE_ARN` variable is configured.
+- API Gateway CORS permits the production Pages origin, `http://localhost:5173`, and `http://127.0.0.1:5178`.
+- Allowed CORS methods are GET, POST, PUT, PATCH, DELETE, and OPTIONS; only GET /health is implemented.
+- GitHub's `AWS_DEPLOY_ROLE_ARN` and `API_BASE_URL` variables are configured.
 
 Supabase is provisioned but not connected to application business logic yet.
 There are no application tables, login routes, receipt uploads, or database credentials in the starter.
@@ -46,7 +48,8 @@ The live health check verifies browser -> Java connectivity only.
 
 - A Java 21 ARM64 Lambda named `csci201-team3-api`, 256 MB memory and 10-second timeout.
 - A log group with 7-day retention and an execution role restricted to writing those logs.
-- A public function URL for the starter's health endpoint.
+- A public HTTP API Gateway with a default route to Lambda and shared throttling.
+- A gateway permission scoped to this API/account and IAM-only access on any legacy Function URL.
 - GitHub OIDC trust restricted to `acesava/CSCI201-Team3`, branch `main`.
 - A deployment role allowed only to update this function's code, read its configuration, and invoke it for a health test.
 
@@ -89,26 +92,60 @@ Once the repository is available in Cloudflare:
 | Build command | `npm run build` |
 | Build output | `dist` |
 | `NODE_VERSION` | `22` |
-| `VITE_API_BASE_URL` | Function URL returned by AWS bootstrap |
+| `VITE_API_BASE_URL` | API Gateway URL returned by AWS bootstrap |
 
-Set Lambda Function URL CORS to the exact resulting Pages origin.
-For the initial health route, allow `GET` only.
+Set API Gateway CORS to the exact resulting Pages origin.
 Add localhost or preview origins explicitly when needed; CORS does not replace authentication.
 Rebuild the frontend after changing its `VITE_API_BASE_URL` because Vite embeds the URL during the build.
 
 ## Enable Java redeployments
 
-After bootstrap, set this GitHub Actions repository variable:
+After bootstrap, set these GitHub Actions repository variables:
 
 ```text
 AWS_DEPLOY_ROLE_ARN=arn:aws:iam::398074591774:role/csci201-team3-github-deploy
+API_BASE_URL=https://mu0qe823ue.execute-api.us-west-2.amazonaws.com
 ```
 
-The workflow remains disabled while that variable is absent.
+The workflow remains disabled while the deployment role variable is absent.
+The public smoke check requires `API_BASE_URL`.
 It deploys only from `main`, after Java tests pass.
 Use Actions -> Deploy Java backend -> Run workflow on `main` for the first run or a redeploy.
 Every deployment checks `/health` through the Lambda invocation API.
-The browser connection check separately validates the public URL and CORS.
+The workflow also checks the public gateway URL and CORS.
+The browser connection check exercises the same route.
+
+## API throttling
+
+API Gateway HTTP API `csci201-team3-public-api` (`mu0qe823ue`) uses the `$default` stage with automatic deployment.
+Default route settings target 5 requests per second and burst capacity 10.
+In AWS, select us-west-2, open API Gateway, select this API, then Stages and `$default` to inspect throttling.
+Detailed metrics and provisioned concurrency are not enabled.
+
+For repeatable configuration in AWS CloudShell, run:
+
+```sh
+python3 infrastructure/configure-gateway.py
+# After migrating and testing every client:
+python3 infrastructure/configure-gateway.py --close-direct-url
+```
+
+The second command changes any legacy Function URL to `AWS_IAM` and removes its two old anonymous invocation permissions.
+API Gateway invokes the function using a permission restricted to this API and account.
+The public gateway needs no AWS credentials from app users.
+The GitHub deployment role remains scoped to the existing function and does not administer API Gateway.
+Bootstrap invokes this configuration with the direct URL closed by default.
+
+Update Cloudflare's Production and Preview `VITE_API_BASE_URL`, GitHub's `API_BASE_URL`, and local `.env.local` files whenever the gateway URL changes.
+Rebuild Cloudflare and restart local Vite before disabling an old URL.
+CORS is a browser rule, not an abuse control or login system.
+Handle `429` with bounded retries and a delay; a tight retry loop makes throttling worse.
+
+This is a shared best-effort throttle, not a per-user quota, spending cap, or guarantee against downtime.
+An attacker can consume the shared allowance and gateway traffic can still consume credits.
+API Gateway is a metered service; the AWS Free plan was retained without a paid upgrade.
+Authentication, group permissions, and per-user OCR quotas still need implementation before private or expensive features go live.
+See [HTTP API throttling](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-throttling.html) and [API Gateway pricing](https://aws.amazon.com/api-gateway/pricing/).
 
 ## Supabase
 

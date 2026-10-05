@@ -1,4 +1,4 @@
-"""Check the public Lambda health endpoint and browser CORS after deployment."""
+"""Check the public API Gateway health endpoint and browser CORS after deployment."""
 
 import json
 import sys
