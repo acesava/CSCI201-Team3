@@ -8,6 +8,41 @@ There is no Spring Boot dependency.
 - [Java health endpoint](https://sautin26evkxdm33hseqsah6te0kjgua.lambda-url.us-west-2.on.aws/health)
 - [Build and deployment runs](https://github.com/acesava/CSCI201-Team3/actions)
 
+## How our app works
+
+Cloudflare delivers the React website to the user's browser.
+React sends requests to Java and displays the results Java sends back.
+
+```mermaid
+flowchart TD
+    CF["Cloudflare Pages<br/>Hosts our website"] -->|Loads the website| FE["User's browser<br/>React screens, forms, and charts"]
+    FE -->|HTTPS request| API["AWS Lambda<br/>Our Java backend"]
+    API -->|JSON response| FE
+    API -.->|Read and save data - planned| DB[("Supabase Postgres<br/>Accounts, groups, expenses, and shares")]
+    API -.->|Receipt reading - planned| OCR["Inside Lambda: Tesseract OCR<br/>Java worker threads handle receipt tasks"]
+    OCR -.->|Extracted items and prices| API
+```
+
+**Working now:** the website and Java health check.
+**Still to build:** Java login, permissions, expense splitting, database integration, and receipt reading.
+Dashed arrows show planned connections.
+Users will also be able to enter expenses manually without uploading a receipt.
+
+## How our changes go live
+
+```mermaid
+flowchart TD
+    TEAM["Team member<br/>Code on a branch and open a pull request"] --> MAIN["Review and merge into main"]
+    MAIN --> CFBUILD["Cloudflare automatically builds React"]
+    CFBUILD --> SITE["Updated live website"]
+    MAIN -->|Backend changes| ACTIONS["GitHub Actions tests and packages Java"]
+    ACTIONS --> LAMBDA["Updates our Lambda and checks its health"]
+```
+
+No manual deployment button is needed for normal frontend or backend changes merged into `main`.
+The separate **Build and test** workflow checks pull requests before merging.
+Supabase database changes are not automatically deployed yet.
+
 ## Start locally
 
 Install Node.js 22 and a JDK 21.
