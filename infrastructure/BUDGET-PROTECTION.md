@@ -60,7 +60,7 @@ python3 -m unittest discover -s infrastructure/tests -v
 Use authenticated AWS CloudShell in `us-west-2` after reviewing the template.
 Verify account `398074591774` before creating the stack.
 Pass the owner's existing budget email as the `AlertEmailAddress` parameter; do not commit a private email or credentials.
-The stack name is `csci201-team3-budget-safety` and requires `CAPABILITY_NAMED_IAM`.
+The stack name is `csci201-team3-spending-guard` and requires `CAPABILITY_NAMED_IAM`.
 The guard role can read only the named budget, modify concurrency only on the team Java function, patch only its existing default route, publish only to the alert topic, and write only its own logs.
 It cannot change account plans, payment methods, other functions, or GitHub deployment permissions.
 

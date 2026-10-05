@@ -93,7 +93,8 @@ def template():
     add("SemesterBudget", "Budgets::Budget", {
         "Budget": {"BudgetName": BUDGET, "BudgetType": "COST", "TimeUnit": "CUSTOM",
             "BudgetLimit": {"Amount": 14, "Unit": "USD"},
-            "TimePeriod": {"Start": "2026-10-01T00:00:00Z", "End": "2027-01-01T00:00:00Z"},
+            # The CloudFormation provider requires epoch seconds as strings.
+            "TimePeriod": {"Start": "1790812800", "End": "1798761600"},
             "CostTypes": {"IncludeCredit": False, "IncludeRefund": False,
                           "UseBlended": False, "UseAmortized": False}},
         "NotificationsWithSubscribers": notifications,

@@ -79,6 +79,7 @@ class BudgetGuardTests(unittest.TestCase):
         resources = template()["Resources"]
         budget = resources["SemesterBudget"]["Properties"]["Budget"]
         self.assertEqual(budget["TimeUnit"], "CUSTOM")
+        self.assertTrue(all(v.isdecimal() for v in budget["TimePeriod"].values()))
         self.assertFalse(budget["CostTypes"]["IncludeCredit"])
         self.assertFalse(budget["CostTypes"]["IncludeRefund"])
         self.assertEqual(budget["BudgetLimit"]["Amount"], 14)
