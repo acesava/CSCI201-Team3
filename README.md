@@ -95,6 +95,14 @@ The live website and deployment workflow use this gateway too.
 
 Throttling is best effort and is not a spending cap or a guarantee of availability.
 A sustained attacker can still consume gateway requests and compete with normal users for the shared allowance.
+The Java entry point also enforces 30 requests per public IP per fixed 10-second window using a shared DynamoDB counter.
+This includes health checks and unimplemented routes; it is independent of account login.
+API Gateway supplies the IP; caller-provided forwarding headers are ignored.
+Responses include `Retry-After` on `429`; wait before retrying.
+People sharing a campus or home public IP share this allowance, and IP rotation can evade it.
+A fixed-window boundary can permit two adjacent bursts; the gateway throttle still applies.
+The Java guard runs inside Lambda, so rejected requests still use some Lambda and counter capacity.
+Counter failure returns `503` rather than allowing unchecked business operations.
 Before adding private data or OCR, implement login, permission checks, and per-user operation quotas.
 See [rate-limit configuration](infrastructure/SETUP.md#api-throttling) for the dashboard and setup script.
 

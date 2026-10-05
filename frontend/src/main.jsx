@@ -14,6 +14,11 @@ function App() {
     setChecking(true);
     try {
       const response = await fetch(`${base}/health`, { signal: AbortSignal.timeout(15000) });
+      if (response.status === 429) {
+        const seconds = response.headers.get('retry-after') || 'a few';
+        setStatus(`Too many requests. Wait ${seconds} seconds, then try again.`);
+        return;
+      }
       const data = await response.json();
       if (!response.ok || data.status !== 'ok') throw new Error('Unavailable');
       setStatus('Connected to the Java backend.');

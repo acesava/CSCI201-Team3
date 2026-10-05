@@ -37,7 +37,7 @@ jobs:
           aws lambda wait function-updated --function-name csci201-team3-api
       - name: Verify deployed handler
         run: |
-          aws lambda invoke --function-name csci201-team3-api --cli-binary-format raw-in-base64-out --payload '{"rawPath":"/health","requestContext":{"http":{"method":"GET"}}}' /tmp/health.json > /tmp/invoke.json
+          aws lambda invoke --function-name csci201-team3-api --cli-binary-format raw-in-base64-out --payload '{"rawPath":"/health","requestContext":{"http":{"method":"GET","sourceIp":"192.0.2.1"}}}' /tmp/health.json > /tmp/invoke.json
           python3 - <<'PY'
           import json
           metadata = json.load(open('/tmp/invoke.json'))

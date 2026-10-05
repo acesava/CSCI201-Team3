@@ -38,6 +38,7 @@ def main():
         "AllowMethods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         "AllowHeaders": ["authorization", "content-type", "idempotency-key"],
         "MaxAge": 300,
+        "ExposeHeaders": ["retry-after"],
     }
     api = apis[0] if apis else gateway.create_api(
         Name=name, ProtocolType="HTTP", CorsConfiguration=cors,

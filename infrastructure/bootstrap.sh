@@ -45,6 +45,7 @@ aws lambda wait function-active-v2 --function-name "$FUNCTION"
 # Public traffic enters API Gateway, which throttles before invoking Java.
 # This also removes anonymous access from any legacy direct function URL.
 python3 infrastructure/configure-gateway.py --close-direct-url
+python3 infrastructure/configure-ip-limits.py --apply
 
 PROVIDER_ARN="arn:aws:iam::$ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com"
 if ! aws iam get-open-id-connect-provider --open-id-connect-provider-arn "$PROVIDER_ARN" >/dev/null 2>&1; then
