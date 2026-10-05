@@ -29,10 +29,11 @@ final class DynamoIpCounter implements IpRateLimiter.CounterStore {
         }
         DynamoDbClient client = DynamoDbClient.builder()
                 .httpClientBuilder(UrlConnectionHttpClient.builder()
-                        .connectionTimeout(Duration.ofSeconds(1))
-                        .socketTimeout(Duration.ofSeconds(2)))
+                        .connectionTimeout(Duration.ofSeconds(2))
+                        .socketTimeout(Duration.ofSeconds(3)))
                 .overrideConfiguration(ClientOverrideConfiguration.builder()
-                        .apiCallTimeout(Duration.ofSeconds(2))
+                        // Leave time for first-call SDK/TLS setup on the 256 MB runtime.
+                        .apiCallTimeout(Duration.ofSeconds(5))
                         .retryPolicy(RetryPolicy.none()).build())
                 .build();
         return new IpRateLimiter(new DynamoIpCounter(client, table), Clock.systemUTC());

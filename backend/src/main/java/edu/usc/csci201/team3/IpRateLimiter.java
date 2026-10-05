@@ -35,6 +35,8 @@ final class IpRateLimiter {
             return store.acquire(key, end + 120, LIMIT)
                     ? new Decision(200, 0) : new Decision(429, (int) (end - now));
         } catch (RuntimeException unavailable) {
+            // Record only the exception type, never an IP, key, or SDK error payload.
+            System.err.println("IP counter unavailable: " + unavailable.getClass().getSimpleName());
             // Never run business routes when the shared counter cannot be checked.
             return new Decision(503, WINDOW_SECONDS);
         }
