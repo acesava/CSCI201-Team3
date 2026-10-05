@@ -47,3 +47,8 @@ jobs:
           assert json.loads(response['body'])['status'] == 'ok', response
           print('Deployed Java health check passed')
           PY
+      - name: Verify public URL and browser CORS
+        run: >-
+          python3 backend/scripts/check-live-api.py
+          https://sautin26evkxdm33hseqsah6te0kjgua.lambda-url.us-west-2.on.aws
+          https://csci201-expense-tracker.pages.dev
