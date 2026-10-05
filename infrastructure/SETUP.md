@@ -57,7 +57,7 @@ Lambda timeout and memory limits bound individual requests; they are not a month
 
 ## Cloudflare Pages: repository authorization
 
-Use the private `acesava/csci201-expense-tracker` repository.
+Use the public `acesava/csci201-expense-tracker` repository.
 Authorize the Cloudflare Workers and Pages GitHub app for only this repository.
 Kyle's repository and the old Spring Boot starter remain unchanged.
 
@@ -108,8 +108,8 @@ Keep the selected free plans and check their dashboards before demos.
 AWS credits and Free-plan access expire; the observed expiration is April 4, 2027 or earlier if credits are exhausted.
 Set a low AWS cost alert; alerts do not stop requests or spending.
 Keep provisioned concurrency off and avoid a VPC/NAT gateway for this starter.
-This repository is private: GitHub Actions consumes the owner's included private-repository minutes and storage allowance.
-Keep workflows on standard Linux runners and check the account's Actions budget settings.
+Standard GitHub-hosted runners are free for this public repository under current GitHub pricing.
+Use standard Linux runners; larger runners are billed separately.
 Cloudflare Pages' Free build allowance and Supabase's database/storage/egress quotas still apply.
 OCR will require a separate measured packaging and cost check before enabling uploads.
 

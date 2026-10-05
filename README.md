@@ -50,7 +50,7 @@ Use a feature branch and a pull request for each change.
 The build checks compile React and run the Java tests.
 After the cloud connection is configured, pushes to `main` update production.
 Do not commit passwords, AWS access keys, session tokens, receipt photos, or Supabase service-role keys.
-The repository is private; invite teammates with their own GitHub accounts.
+The repository is public; teammates still need collaborator invitations to push changes.
 
 ## Next implementation milestones
 
