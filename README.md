@@ -5,7 +5,7 @@ This repository is a starter, not the completed course project.
 There is no Spring Boot dependency.
 
 - [Live starter](https://csci201-expense-tracker.pages.dev)
-- [Java health endpoint](https://sautin26evkxdm33hseqsah6te0kjgua.lambda-url.us-west-2.on.aws/health)
+- [Java health endpoint](https://mu0qe823ue.execute-api.us-west-2.amazonaws.com/health)
 - [Build and deployment runs](https://github.com/acesava/CSCI201-Team3/actions)
 
 ## How our app works
@@ -16,8 +16,9 @@ React sends requests to Java and displays the results Java sends back.
 ```mermaid
 flowchart TD
     CF["Cloudflare Pages<br/>Hosts our website"] -->|Loads the website| FE["User's browser<br/>React screens and forms"]
-    FE -->|HTTPS request| API["AWS Lambda<br/>Our Java backend"]
-    API -->|JSON response| FE
+    FE -->|HTTPS request| GW["API Gateway<br/>5 requests/sec, burst 10"]
+    GW --> API["AWS Lambda<br/>Our Java backend"]
+    API -->|JSON response via gateway| FE
     API -.->|Read / save data| DB[("Supabase Postgres<br/>Accounts and groups<br/>Expenses and shares")]
     API -.->|Read receipt| OCR["Tesseract OCR<br/>Java worker threads<br/>Inside Lambda"]
     OCR -.->|Items and prices| API
@@ -59,7 +60,7 @@ npm run dev
 
 Open **http://localhost:5173** and click **Check backend**.
 The example environment file contains our public Java API URL, not a secret.
-Use `localhost`, not `127.0.0.1`: Lambda's current CORS settings allow the former on port 5173.
+Use `localhost`, not `127.0.0.1`: API Gateway's current CORS settings allow the former on port 5173.
 If port 5173 is busy, stop your previous dev server; Vite will report the conflict instead of silently picking an unsupported port.
 
 In another terminal, starting from the repository root, test and package Java:
@@ -79,6 +80,23 @@ The Java backend is a Lambda handler, not a local HTTP server.
 These Maven commands run tests and create the deployment package; the frontend connects to the shared deployed API.
 Restart Vite after changing `VITE_API_BASE_URL` in `frontend/.env.local`.
 The page's connection check uses a real HTTP request; without a configured URL it reports that setup is incomplete.
+
+## API rate limiting
+
+Public requests go through API Gateway before reaching Lambda.
+The shared limit targets **5 requests per second with a burst capacity of 10**, across all users, not per person.
+Excess requests receive HTTP `429`; wait a few seconds and retry instead of looping immediately.
+Normal users do not need AWS accounts or AWS keys.
+The legacy direct Lambda URL requires AWS IAM authentication and is no longer an anonymous bypass.
+
+**Existing local setup:** replace only `VITE_API_BASE_URL` in `frontend/.env.local` with the value in `.env.example`, then restart Vite.
+Do not overwrite other local environment settings.
+The live website and deployment workflow use this gateway too.
+
+Throttling is best effort and is not a spending cap or a guarantee of availability.
+A sustained attacker can still consume gateway requests and compete with normal users for the shared allowance.
+Before adding private data or OCR, implement login, permission checks, and per-user operation quotas.
+See [rate-limit configuration](infrastructure/SETUP.md#api-throttling) for the dashboard and setup script.
 
 ## Folder responsibilities
 
