@@ -4,6 +4,10 @@ React frontend, Java 21 AWS Lambda backend, and Supabase Postgres.
 This repository is a starter, not the completed course project.
 There is no Spring Boot dependency.
 
+- [Live starter](https://csci201-expense-tracker.pages.dev)
+- [Java health endpoint](https://sautin26evkxdm33hseqsah6te0kjgua.lambda-url.us-west-2.on.aws/health)
+- [Build and deployment runs](https://github.com/acesava/csci201-expense-tracker/actions)
+
 ## Start locally
 
 Install Node.js 22 and a JDK 21.

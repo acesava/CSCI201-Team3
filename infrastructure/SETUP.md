@@ -26,6 +26,20 @@ Login and expense features still need implementation.
 
 Use `us-west-2` for Lambda so the backend and database are in the same region.
 
+## Provisioned starter
+
+- Frontend: https://csci201-expense-tracker.pages.dev
+- Java API: https://sautin26evkxdm33hseqsah6te0kjgua.lambda-url.us-west-2.on.aws
+- Supabase dashboard: https://supabase.com/dashboard/project/klxskdrnvslhqrwmuiuu
+- Cloudflare builds `main`, root `frontend`, command `npm run build`, output `dist`, Node.js 22.
+- `VITE_API_BASE_URL` is set in Cloudflare's build environment.
+- Lambda CORS permits the production Pages origin, `http://localhost:5173`, and `http://127.0.0.1:5178` for GET requests.
+- GitHub's `AWS_DEPLOY_ROLE_ARN` variable is configured.
+
+Supabase is provisioned but not connected to application business logic yet.
+There are no application tables, login routes, receipt uploads, or database credentials in the starter.
+The live health check verifies browser -> Java connectivity only.
+
 ## AWS bootstrap
 
 `bootstrap.sh` creates:
@@ -39,6 +53,8 @@ Use `us-west-2` for Lambda so the backend and database are in the same region.
 The deployment role cannot manage IAM, unrelated functions, or database credentials.
 Code deployed by that role executes with the function's runtime permissions and environment, so protect `main` and review changes before merging.
 No long-lived AWS access key is needed.
+This repository uses GitHub's immutable OIDC subject prefix, `repo:acesava@287342120/csci201-expense-tracker@1405003751`.
+The trust policy includes this exact prefix plus `:ref:refs/heads/main`; copying a legacy name-only subject will fail.
 
 Review these permissions and public exposure before running bootstrap in CloudShell:
 
@@ -66,7 +82,7 @@ Once the repository is available in Cloudflare:
 | Setting | Value |
 | --- | --- |
 | Product | Pages, Git integration |
-| Project name | `csci201-team3` (or an available equivalent) |
+| Project name | `csci201-expense-tracker` |
 | Production branch | `main` |
 | Root directory | `frontend` |
 | Framework | React / Vite |
@@ -106,7 +122,9 @@ See `database/README.md` for the proposed data model.
 
 Keep the selected free plans and check their dashboards before demos.
 AWS credits and Free-plan access expire; the observed expiration is April 4, 2027 or earlier if credits are exhausted.
-Set a low AWS cost alert; alerts do not stop requests or spending.
+A $1 monthly AWS cost budget is configured, with email alerts above 50% and 100%.
+It excludes credits and refunds so credit-funded usage is still visible.
+Alerts do not stop requests or spending.
 Keep provisioned concurrency off and avoid a VPC/NAT gateway for this starter.
 Standard GitHub-hosted runners are free for this public repository under current GitHub pricing.
 Use standard Linux runners; larger runners are billed separately.
