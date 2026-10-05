@@ -86,6 +86,8 @@ class BudgetGuardTests(unittest.TestCase):
         for statement in resources["GuardRole"]["Properties"]["Policies"][0]["PolicyDocument"]["Statement"]:
             self.assertNotEqual(statement["Resource"], "*")
         self.assertEqual(sum(r["Type"] == "AWS::CloudWatch::Alarm" for r in resources.values()), 6)
+        statements = resources["TopicPolicies"]["Properties"]["PolicyDocument"]["Statement"]
+        self.assertEqual(len({s["Sid"] for s in statements}), len(statements))
 
 
 if __name__ == "__main__":

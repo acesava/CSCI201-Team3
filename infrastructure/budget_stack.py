@@ -39,10 +39,12 @@ def template():
         "Topics": [ref("Alerts"), ref("Trigger")],
         "PolicyDocument": {"Version": "2012-10-17", "Statement": [
             {**allow("sns:Publish", ref("Trigger")),
+             "Sid": "BudgetMayTriggerShutdown",
              "Principal": {"Service": "budgets.amazonaws.com"},
              "Condition": {"StringEquals": {"aws:SourceAccount": ACCOUNT},
                            "ArnEquals": {"aws:SourceArn": budget_arn}}},
             {**allow("sns:Publish", ref("Alerts")),
+             "Sid": "CloudWatchMaySendAlerts",
              "Principal": {"Service": "cloudwatch.amazonaws.com"},
              "Condition": {"StringEquals": {"aws:SourceAccount": ACCOUNT},
                            "ArnLike": {"aws:SourceArn": arn("cloudwatch", "alarm:" + PREFIX + "-*")}}},
