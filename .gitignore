@@ -9,3 +9,4 @@ target/
 .vscode/
 *.log
 .aws-sam/
+__pycache__/

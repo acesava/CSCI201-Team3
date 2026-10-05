@@ -1,5 +1,7 @@
 # Team cloud setup
 
+See [budget protection](BUDGET-PROTECTION.md) for the $14 semester safety switch, alert thresholds, deployment verification, and owner recovery procedure.
+
 ## Architecture
 
 ```text
