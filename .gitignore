@@ -10,3 +10,7 @@ target/
 *.log
 .aws-sam/
 __pycache__/
+CLAUDE.local.md
+.claude/settings.local.json
+.aider*
+!.aider.conf.yml
