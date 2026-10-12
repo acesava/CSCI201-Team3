@@ -120,20 +120,10 @@ See [cloud setup](infrastructure/SETUP.md) for exact service settings and remain
 
 ## Work together
 
-Use a feature branch and a pull request for each change.
-The build checks compile React and run the Java tests.
-`main` is our production branch; there is no separate branch named `production`.
-Cloudflare deploys successful frontend builds from `main` automatically.
-GitHub Actions deploys Java when `backend/` or its deployment workflow changes on `main`.
-Pushing a feature branch does not update the production Java backend.
-Check the pull request's frontend, backend, and Cloudflare results before merging.
-These checks are not currently enforced by branch protection, and Cloudflare does not wait for the separate GitHub checks on a direct push to `main`.
-Cloudflare preview URLs can display the frontend, but the production API currently permits only the production website and configured local origins.
-Use the local URL above for the connection check until preview-origin support is deliberately configured.
-Do not commit passwords, AWS access keys, session tokens, receipt photos, or Supabase service-role keys.
+The team workflow (branches, checks, pull requests, merging, code style, and what not to touch) lives in [AGENTS.md](AGENTS.md).
+Read it before your first change, and point your AI coding agent at it.
+`main` is our production branch: merging to it deploys the frontend (Cloudflare) and, for `backend/` changes, the Java API (GitHub Actions).
 The repository is public; teammates must accept their collaborator invitation to push changes.
-You can replace the starter UI, but preserve `frontend/package.json`, its lockfile, `npm run build`, and the `dist` output unless the deployment settings are updated too.
-Java changes must preserve the configured handler and `GET /health` contract, or update the deployment configuration and checks together.
 
 ## Next implementation milestones
 
