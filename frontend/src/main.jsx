@@ -34,15 +34,15 @@ function App() {
       <section className="intro">
         <p className="eyebrow">GOOD TIMES. FAIR SHARES.</p>
         <h1>Enjoy the hangout.<br /><span>Split the bill.</span></h1>
-        <p className="lede">Our group expense tracker is taking shape. This is the team's starting point for building and testing together.</p>
+        <p className="lede">Our receipt scanner and bill splitter is taking shape. This is the team's starting point for building and testing together.</p>
       </section>
       <section className="cards" aria-label="Planned features">
-        <article><span className="number">01</span><h2>Your group</h2><p>Invite friends and keep shared expenses in one place.</p></article>
-        <article><span className="number">02</span><h2>Your expenses</h2><p>Enter a bill manually, then add receipt scanning.</p></article>
-        <article><span className="number">03</span><h2>Everyone's share</h2><p>See who paid and what each person owes.</p></article>
+        <article><span className="number">01</span><h2>Your receipts</h2><p>Scan a receipt or enter a bill manually.</p></article>
+        <article><span className="number">02</span><h2>Split the bill</h2><p>Calculate an equal split. Other participants won't need accounts.</p></article>
+        <article><span className="number">03</span><h2>Your history</h2><p>Save receipts and split results to your personal history.</p></article>
       </section>
       <section className="connection"><div><h2>Team connection check</h2><p role="status" aria-live="polite">{status}</p></div><button onClick={checkConnection} disabled={checking}>{checking ? 'Connecting…' : 'Check backend'}</button></section>
-      <footer>Login, groups, expense storage, and receipt reading are planned features. They are not available in this starter.</footer>
+      <footer>Login, receipt reading, bill splitting, and personal history are planned features. They are not available in this starter.</footer>
     </main>
   );
 }
