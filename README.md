@@ -1,8 +1,12 @@
-# CSCI 201 Team 3: group expense tracker
+# CSCI 201 Team 3: receipt scanner and bill splitter
 
 React frontend, Java 21 AWS Lambda backend, and Supabase Postgres.
 This repository is a starter, not the completed course project.
 There is no Spring Boot dependency.
+
+The planned app lets one logged-in user scan a receipt or enter a bill manually, calculate an equal split, and save the result to personal history.
+Other participants do not need accounts.
+Payments happen outside the app; persistent groups, invitations, shared balances, and settlement tracking are outside the current scope.
 
 - [Live starter](https://csci201-expense-tracker.pages.dev)
 - [Java health endpoint](https://mu0qe823ue.execute-api.us-west-2.amazonaws.com/health)
@@ -19,13 +23,13 @@ flowchart TD
     FE -->|HTTPS request| GW["API Gateway<br/>5 requests/sec, burst 10"]
     GW --> API["AWS Lambda<br/>Our Java backend"]
     API -->|JSON response via gateway| FE
-    API -.->|Read / save data| DB[("Supabase Postgres<br/>Accounts and groups<br/>Expenses and shares")]
+    API -.->|Read / save data| DB[("Supabase Postgres<br/>Accounts and sessions<br/>Personal receipts and splits")]
     API -.->|Read receipt| OCR["Tesseract OCR<br/>Java worker threads<br/>Inside Lambda"]
-    OCR -.->|Items and prices| API
+    OCR -.->|Receipt total for user review| API
 ```
 
 **Working now:** the website and Java health check.
-**Still to build:** Java login, permissions, expense splitting, database integration, and receipt reading.
+**Still to build:** Java login, receipt ownership checks, equal splitting, personal history, database integration, and receipt reading.
 Dashed arrows show planned connections.
 Users will also be able to enter expenses manually without uploading a receipt.
 
@@ -111,7 +115,7 @@ See [rate-limit configuration](infrastructure/SETUP.md#api-throttling) for the d
 | Folder | What belongs here |
 | --- | --- |
 | `frontend/` | React screens, forms, charts, and calls to Java |
-| `backend/` | Java login, permissions, groups, expenses, and splitting logic |
+| `backend/` | Java login, receipt ownership checks, receipt processing, splitting, and personal history |
 | `database/` | Reviewed SQL migrations and database notes |
 | `infrastructure/` | Cloud setup and deployment instructions |
 | `.github/workflows/` | Build checks and Java deployment |
@@ -127,12 +131,26 @@ The repository is public; teammates must accept their collaborator invitation to
 
 ## Next implementation milestones
 
-- Register/login/logout in Java, password hashing, expiring sessions, and guest sample data.
-- Create groups and check membership on every private operation.
-- Manual expense entry with a payer, participants, and integer-cent splits.
-- Store each expense and its shares in a transaction, then show balances.
-- Add editable receipt extraction only after the manual path works.
+- Register/login/logout in Java, password hashing, and expiring sessions; guests can view introductory information and register or log in.
+- Enforce receipt ownership and per-user operation quotas before exposing private data or OCR.
+- Add manual bill entry and equal splits using a positive participant count and integer cents; displayed shares must sum to the bill total.
+- Save the total, date, optional description, participant count, and split result to personal history, with view, edit, and delete operations.
+- Add receipt-total extraction with user review, correction, and manual-entry fallback.
 - Demonstrate explicit Java concurrency with bounded receipt tasks and collect all results before a Lambda invocation returns.
 
 Tesseract, user authentication, database access, and multithreading are not implemented in this starter.
 Concurrent Lambda invocations alone are not the planned Java multithreading demonstration.
+
+## Planned feature ownership
+
+- **Rakshita — receipt OCR:** extract the receipt total, support review and correction, and handle unreadable receipts with a manual-entry fallback.
+- **Frontend collaboration:** provide receipt entry and correction, the split calculator, and personal history.
+- **Backend/database collaboration:** enforce ownership and save receipts and split results.
+
+## Course constraints retained
+
+The Project Requirements slide in the course FinalProject deck (page 5) requires central-server login, different authenticated and guest experiences with guest registration, an intuitive graphical interface, networking and multithreading beyond chat, and Java on the frontend or backend.
+With React on the frontend, our backend remains Java.
+The checklist also prohibits Java UX and JSP.
+Groups, invitations, shared balances, and settlement tracking were team-selected features rather than items in that checklist.
+This scope change preserves the planned explicit Java concurrency demonstration.
