@@ -94,7 +94,8 @@ def template():
         "Budget": {"BudgetName": BUDGET, "BudgetType": "COST", "TimeUnit": "CUSTOM",
             "BudgetLimit": {"Amount": 14, "Unit": "USD"},
             # The CloudFormation provider requires epoch seconds as strings.
-            "TimePeriod": {"Start": "1790812800", "End": "1798761600"},
+            # End after January 31 in Los Angeles, preserving the original start and limit.
+            "TimePeriod": {"Start": "1790812800", "End": "1801526400"},
             "CostTypes": {"IncludeCredit": False, "IncludeRefund": False,
                           "UseBlended": False, "UseAmortized": False}},
         "NotificationsWithSubscribers": notifications,

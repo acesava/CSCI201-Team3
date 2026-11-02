@@ -17,9 +17,16 @@ It is infrastructure code; the application backend remains Java.
 
 The actual production shutdown has not been exercised, since reported spend is below the threshold.
 
+## January coverage verification, November 1, 2026
+
+The existing live budget was extended to February 2, 2027 at 00:00 UTC and read back in AWS, preserving its October 1 start, cumulative $14 limit, credit/refund exclusions, three email alerts, and shutdown SNS subscriber.
+Only the budget end date was updated in the console; the full CloudFormation stack was not redeployed.
+The template uses the same end date so a future manual stack deployment preserves the extension.
+
 ## Threshold and scope
 
-The cumulative account budget is $14 from October 1 through December 31, 2026 (UTC).
+The cumulative account budget is $14 from October 1, 2026 at 00:00 UTC until February 2, 2027 at 00:00 UTC, covering all of January 31 in Los Angeles.
+The January extension preserves the original start date and cumulative $14 limit; it does not grant a new $14 allowance.
 At setup on October 4, reported usage was $0, so $14 represents 10% of the verified $140 credit balance.
 It does not reset each month.
 Credits and refunds are excluded so credits cannot hide metered costs behind a $0 payable bill.
@@ -38,7 +45,7 @@ AWS Budgets normally updates several times per day, so usage can overshoot befor
 Already-running requests can finish.
 Gateway requests, stored data, and unrelated services can still incur costs after the Java backend stops.
 The frontend and Supabase remain available.
-Protection must be reviewed before January 1, 2027, when this semester budget ends.
+Protection must be reviewed before February 2, 2027 at 00:00 UTC, when this budget ends.
 
 ## Operational alerts
 

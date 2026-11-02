@@ -1,7 +1,9 @@
 import sys
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import Mock
+from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from budget_guard import enforce
@@ -80,6 +82,10 @@ class BudgetGuardTests(unittest.TestCase):
         budget = resources["SemesterBudget"]["Properties"]["Budget"]
         self.assertEqual(budget["TimeUnit"], "CUSTOM")
         self.assertTrue(all(v.isdecimal() for v in budget["TimePeriod"].values()))
+        self.assertEqual(int(budget["TimePeriod"]["Start"]),
+                         datetime(2026, 10, 1, tzinfo=timezone.utc).timestamp())
+        self.assertGreaterEqual(int(budget["TimePeriod"]["End"]),
+                                datetime(2027, 2, 1, tzinfo=ZoneInfo("America/Los_Angeles")).timestamp())
         self.assertFalse(budget["CostTypes"]["IncludeCredit"])
         self.assertFalse(budget["CostTypes"]["IncludeRefund"])
         self.assertEqual(budget["BudgetLimit"]["Amount"], 14)
