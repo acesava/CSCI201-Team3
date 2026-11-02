@@ -1,0 +1,23 @@
+name: Supabase database health
+
+on:
+  schedule:
+    - cron: '17 */8 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  database-health:
+    if: github.repository == 'acesava/CSCI201-Team3'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Check database connectivity
+        env:
+          SUPABASE_HEALTH_KEY: ${{ secrets.SUPABASE_HEALTH_KEY }}
+        run: python3 infrastructure/supabase_health.py
