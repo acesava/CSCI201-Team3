@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './style.css';
+import Login from './pages/Login';
 
 function App() {
   const [status, setStatus] = useState('Not checked');
@@ -46,4 +47,4 @@ function App() {
     </main>
   );
 }
-createRoot(document.getElementById('root')).render(<App />);
+createRoot(document.getElementById('root')).render(<Login />);
