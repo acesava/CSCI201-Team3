@@ -1,0 +1,18 @@
+{
+  "expense": {
+    "expense_id": "dad34cee-ad15-484a-b977-9a18d7d29898",
+    "user_id": null,
+    "expense_name": "ROU FVARD",
+    "total_amount": 249.32,
+    "expense_date": "2006-02-15",
+    "expense_category": "Food & Drinks",
+    "payer_id": null,
+    "created_at": "2026-11-16T02:46:54.607978200Z",
+    "updated_at": "2026-11-16T02:46:54.607978200Z"
+  },
+  "receipt": {
+    "receipt_id": "4175bbdb-c9a1-4945-9447-56d56704a9ac",
+    "expense_id": "dad34cee-ad15-484a-b977-9a18d7d29898",
+    "receipt_image": "image2.png"
+  }
+}
