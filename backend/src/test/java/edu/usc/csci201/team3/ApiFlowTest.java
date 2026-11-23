@@ -27,14 +27,19 @@ class ApiFlowTest {
     record Text(String to, String message) {}
 
     private final Clock clock = Clock.fixed(Instant.parse("2026-11-20T18:00:00Z"), ZoneOffset.UTC);
-    private InMemoryRepository repo;
+    private Repository repo;
     private List<Text> texts;
     private AtomicReference<String> summaryReply;
     private List<String> prompts;
     private Handler handler;
 
+    /** Subclasses run the same flows against another implementation, such as a real Postgres. */
+    Repository newRepository() {
+        return new InMemoryRepository();
+    }
+
     @BeforeEach void setUp() {
-        repo = new InMemoryRepository();
+        repo = newRepository();
         texts = new CopyOnWriteArrayList<>();
         summaryReply = new AtomicReference<>("You spent $15.00 this month, mostly on dining.");
         prompts = new ArrayList<>();
@@ -319,7 +324,7 @@ class ApiFlowTest {
                 """.formatted(java.util.UUID.randomUUID(), java.util.UUID.randomUUID(), java.util.UUID.randomUUID()));
         assertEquals(200, reply.status());
         assertEquals(334, reply.json().get("shares").get(0).get("amountCents").asLong());
-        assertTrue(repo.expenses.isEmpty());
+        assertEquals(0, call("GET", "/expenses", token, null).json().get("expenses").size());
     }
 
     @Test void passwordChangeAndAccountDeletion() {
@@ -330,8 +335,10 @@ class ApiFlowTest {
         assertEquals(401, call("GET", "/me", token, null).status(), "Old sessions end after a password change");
         assertEquals(200, call("PATCH", "/me", fresh, "{\"displayName\":\"Alexandra\"}").status());
         assertEquals(204, call("DELETE", "/me", fresh, "{\"password\":\"brand-new-pass\"}").status());
-        assertTrue(repo.users.isEmpty());
-        assertTrue(repo.participants.isEmpty());
+        assertEquals(401, call("GET", "/me", fresh, null).status(), "Deleting the account ends its sessions");
+        assertEquals(401, call("POST", "/auth/login", null, "{\"email\":\"alex@usc.edu\",\"password\":\"brand-new-pass\"}").status());
+        // The email is free again, which proves the old row is gone.
+        register("alex@usc.edu");
     }
 
     @Test void unknownRoutesReturn404ForLoggedInUsers() {

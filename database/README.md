@@ -14,6 +14,10 @@ The backend connects as the table owner, which bypasses RLS.
 Keep database credentials only in Lambda configuration; never in `VITE_*`, the React bundle, or Git.
 Java threads do not replace database transactions across separate Lambda instances; quota counters and settlement confirmation use atomic SQL for that reason.
 
+To test the schema and the Java queries locally, apply the migration to a disposable local Postgres, create empty `anon` and `authenticated` roles first, and run:
+`POSTGRES_TEST_URL='jdbc:postgresql://127.0.0.1:55432/postgres?user=postgres' ./backend/mvnw -f backend/pom.xml -Dtest=JdbcApiFlowTest test`.
+That test truncates every table, so it refuses to run against anything except localhost.
+
 ## Scheduled database health check
 
 The `Supabase database health` GitHub Actions workflow checks database connectivity directly every eight hours, at 00:17, 08:17, and 16:17 UTC.
