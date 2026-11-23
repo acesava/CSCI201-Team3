@@ -2,18 +2,32 @@ package edu.usc.csci201.team3;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
-/** Starter HTTP handler. Business routes and authentication are not implemented yet. */
+/** Lambda entry point: per-IP rate limit first, then /health or the authenticated API. */
 public class Handler implements RequestHandler<Map<String, Object>, Map<String, Object>> {
+    static {
+        // Lambda has no display; image decoding for OCR must not try to open one.
+        System.setProperty("java.awt.headless", "true");
+    }
+
     private final IpRateLimiter limiter;
+    private final Supplier<Api> api;
 
     public Handler() {
-        this(DynamoIpCounter.production());
+        this(DynamoIpCounter.production(), Api.production());
     }
 
     Handler(IpRateLimiter limiter) {
+        this(limiter, Api.production());
+    }
+
+    Handler(IpRateLimiter limiter, Supplier<Api> api) {
         this.limiter = limiter;
+        this.api = api;
     }
 
     public Map<String, Object> handleRequest(Map<String, Object> event, Context context) {
@@ -29,7 +43,7 @@ public class Handler implements RequestHandler<Map<String, Object>, Map<String, 
                 case 400 -> "Missing request source";
                 default -> "Service temporarily unavailable";
             };
-            Map<String, String> headers = new java.util.HashMap<>();
+            Map<String, String> headers = new HashMap<>();
             headers.put("content-type", "application/json");
             headers.put("cache-control", "no-store");
             if (decision.retryAfter() > 0) headers.put("retry-after", Integer.toString(decision.retryAfter()));
@@ -43,7 +57,32 @@ public class Handler implements RequestHandler<Map<String, Object>, Map<String, 
             }
             return response(200, "{\"status\":\"ok\",\"service\":\"csci201-team3-java\"}");
         }
-        return response(404, "{\"error\":\"Route not implemented\"}");
+        return route(event);
+    }
+
+    private Map<String, Object> route(Map<String, Object> event) {
+        try {
+            Api.Response result = api.get().handle(Request.from(event));
+            if (result.status() == 204) return response(204, "");
+            return response(result.status(), Body.JSON.writeValueAsString(result.body()));
+        } catch (ApiException expected) {
+            return error(expected.status(), expected.getMessage());
+        } catch (Database.UnavailableException down) {
+            // Fail closed: never guess at data when the database cannot be reached.
+            System.err.println("Database unavailable: " + down.getMessage());
+            return error(503, "Service temporarily unavailable. Please try again shortly.");
+        } catch (JsonProcessingException | RuntimeException unexpected) {
+            System.err.println("Unhandled error: " + unexpected.getClass().getSimpleName());
+            return error(500, "Something went wrong. Please try again.");
+        }
+    }
+
+    private Map<String, Object> error(int status, String message) {
+        try {
+            return response(status, Body.JSON.writeValueAsString(Map.of("error", message)));
+        } catch (JsonProcessingException impossible) {
+            return response(status, "{\"error\":\"Request failed\"}");
+        }
     }
 
     private Map<String, Object> response(int status, String body) {

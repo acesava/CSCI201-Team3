@@ -1,25 +1,22 @@
 # Database work
 
-Supabase is the planned Postgres database and optional private receipt storage.
-The Java API will authenticate users, enforce receipt ownership, and own writes.
-No schema or application authentication has been deployed by this starter.
+Supabase Postgres stores accounts, sessions, participants, expenses, settlements, monthly summaries, and usage quotas.
+The schema is in `migrations/001_initial_schema.sql`; run it once in the Supabase SQL Editor for project `klxskdrnvslhqrwmuiuu`.
+The Java API is the only client: it authenticates users, enforces ownership, and owns all writes.
 
-Plan the tables together before adding the first SQL migration:
+Only the account holder has a login.
+The people they split with are rows in `participants`, with an optional phone number for SMS reminders.
+Every owned table cascades from `users`, so deleting an account deletes its data.
+All money is stored as integer cents, and expense writes happen in one transaction so totals, items, shares, and payments stay consistent.
 
-- `users`: account identity and a password hash, never plaintext passwords.
-- `sessions`: hashed opaque session tokens and expiry.
-- `receipts`: owner account, date, optional description, currency, integer total in cents, participant count, and saved equal-split result.
-- Optional receipt image metadata linked to its owner's receipt and a private storage object.
+RLS is enabled with no policies, and `anon`/`authenticated` grants are revoked, so the public Supabase API cannot read these tables.
+The backend connects as the table owner, which bypasses RLS.
+Keep database credentials only in Lambda configuration; never in `VITE_*`, the React bundle, or Git.
+Java threads do not replace database transactions across separate Lambda instances; quota counters and settlement confirmation use atomic SQL for that reason.
 
-Participants are a count used by the calculator, not linked user accounts.
-Persistent groups, group membership, shared balances, payment records, and settlements are outside the current scope.
-Validate that the participant count is a positive whole number and that all displayed shares sum to the receipt total, including rounding adjustments.
-Keep receipt totals and their saved split results consistent using atomic writes or transactions when multiple rows are involved.
-
-Keep RLS enabled and anonymous access denied on private tables.
-Enforce ownership on every receipt operation.
-Java threads do not replace database transactions across separate Lambda instances.
-Keep database credentials only in backend configuration; never in `VITE_*`, the React bundle, or Git.
+To test the schema and the Java queries locally, apply the migration to a disposable local Postgres, create empty `anon` and `authenticated` roles first, and run:
+`POSTGRES_TEST_URL='jdbc:postgresql://127.0.0.1:55432/postgres?user=postgres' ./backend/mvnw -f backend/pom.xml -Dtest=JdbcApiFlowTest test`.
+That test truncates every table, so it refuses to run against anything except localhost.
 
 ## Scheduled database health check
 

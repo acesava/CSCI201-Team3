@@ -23,8 +23,8 @@ class HandlerTest {
         assertTrue(response.get("body").toString().contains("\"status\":\"ok\""));
         assertEquals(false, response.get("isBase64Encoded"));
     }
-    @Test void unknownRoutesDoNotPretendToSucceed() {
-        assertEquals(404, allowed().handleRequest(event("POST", "/expenses"), null).get("statusCode"));
+    @Test void privateRoutesDoNotPretendToSucceedForGuests() {
+        assertEquals(401, allowed().handleRequest(event("POST", "/expenses"), null).get("statusCode"));
     }
     @Test void healthDoesNotAcceptWrites() {
         assertEquals(405, allowed().handleRequest(event("POST", "/health"), null).get("statusCode"));
